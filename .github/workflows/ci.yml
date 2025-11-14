@@ -56,6 +56,10 @@ jobs:
             echo "No test projects found, skipping tests"
           fi
 
+      - name: Publish .NET Lambda (for CDK synth)
+        working-directory: api
+        run: dotnet publish WardrobeItems.Api.csproj --configuration Release --output bin/Release/net8.0/publish
+
       - name: Install worker dependencies
         working-directory: worker
         run: |
