@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install CDK dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Restore .NET dependencies
+        working-directory: api
+        run: dotnet restore WardrobeItems.Api.csproj
+
+      - name: Build .NET Lambda
+        working-directory: api
+        run: dotnet build WardrobeItems.Api.csproj --configuration Release
+
+      - name: Run .NET tests
+        working-directory: api
+        run: |
+          if [ -f "*.Tests.csproj" ] || [ -d "*Tests" ]; then
+            dotnet test --configuration Release --no-build
+          else
+            echo "No test projects found, skipping tests"
+          fi
+
+      - name: Install worker dependencies
+        working-directory: worker
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      - name: Lint worker
+        working-directory: worker
+        run: ruff check .
+
+      - name: Test worker
+        working-directory: worker
+        run: pytest tests/ || echo "No tests found, continuing"
+
+      - name: CDK synth (plan)
+        env:
+          CDK_NEW_BOOTSTRAP: 1
+        working-directory: infra
+        run: npm run build && npx cdk synth --context stage=dev

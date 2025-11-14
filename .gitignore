@@ -1,0 +1,27 @@
+# Infra
+infra/node_modules/
+infra/cdk.out/
+
+# .NET
+api/bin/
+api/obj/
+*.user
+*.suo
+
+# Python
+worker/__pycache__/
+worker/package/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env
+.env
+
