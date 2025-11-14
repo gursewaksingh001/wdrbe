@@ -48,8 +48,8 @@ jobs:
       - name: Restore & publish .NET Lambda
         working-directory: api
         run: |
-          dotnet restore
-          dotnet publish --configuration Release --output bin/Release/net8.0/publish
+          dotnet restore WardrobeItems.Api.csproj
+          dotnet publish WardrobeItems.Api.csproj --configuration Release --output bin/Release/net8.0/publish
 
       - name: Prepare Python worker bundle
         working-directory: worker
