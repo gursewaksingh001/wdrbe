@@ -29,14 +29,14 @@ public class JwtService : IJwtService
         }
 
         var response = await _ssm.GetParameterAsync(new GetParameterRequest
-        {
-            Name = _secretParameterName,
-            WithDecryption = true
+            {
+                Name = _secretParameterName,
+                WithDecryption = true
         }, cancellationToken);
 
-        _cachedSecret = response.Parameter.Value;
-        _cacheExpiry = DateTime.UtcNow.AddMinutes(5);
-        return _cachedSecret;
+            _cachedSecret = response.Parameter.Value;
+            _cacheExpiry = DateTime.UtcNow.AddMinutes(5);
+            return _cachedSecret;
     }
 
     public (bool IsValid, string? UserId, string? ErrorMessage) ValidateToken(string token, string secret)
@@ -57,7 +57,7 @@ public class JwtService : IJwtService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            var userId = principal.FindFirst("sub")?.Value
+            var userId = principal.FindFirst("sub")?.Value 
                          ?? principal.FindFirst("userId")?.Value
                          ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

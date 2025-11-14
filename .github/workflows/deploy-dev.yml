@@ -1,9 +1,13 @@
-name: deploy-prod
+name: deploy-dev
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.editorconfig'
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_PROD_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_DEV_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Setup Node.js
@@ -51,8 +55,9 @@ jobs:
           dotnet restore WardrobeItems.Api.csproj
           dotnet publish WardrobeItems.Api.csproj --configuration Release --output bin/Release/net8.0/publish
 
-      - name: CDK deploy (prod)
+      - name: CDK deploy (dev)
         env:
           CDK_NEW_BOOTSTRAP: 1
         working-directory: infra
-        run: npx cdk deploy WdrbeStack-prod --require-approval never --concurrency 10 --context stage=prod
+        run: npx cdk deploy WdrbeStack-dev --require-approval never --concurrency 10 --context stage=dev
+

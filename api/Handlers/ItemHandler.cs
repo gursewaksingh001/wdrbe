@@ -26,59 +26,59 @@ public class ItemHandler : IItemHandler
         {
             return CreateResponse(403, new { error = "forbidden", message = "user mismatch" });
         }
-
+            
         var createRequest = JsonSerializer.Deserialize<CreateItemRequest>(request.Body ?? string.Empty, _jsonOptions);
         if (createRequest is null)
-        {
+            {
             return CreateResponse(400, new { error = "validation_failed", errors = new[] { "Invalid JSON payload" } });
-        }
+            }
 
-        if (!createRequest.IsValid(out var errors))
-        {
+            if (!createRequest.IsValid(out var errors))
+            {
             return CreateResponse(400, new { error = "validation_failed", errors });
-        }
+            }
 
-        if (!string.IsNullOrEmpty(createRequest.IdempotencyKey))
-        {
+            if (!string.IsNullOrEmpty(createRequest.IdempotencyKey))
+            {
             var existing = await _repository.GetItemByIdempotencyKeyAsync(userId, createRequest.IdempotencyKey);
             if (existing is not null)
-            {
-                Logger.LogInformation("Idempotent create returning existing item", new
                 {
+                Logger.LogInformation("Idempotent create returning existing item", new
+                    { 
                     existing.ItemId,
                     existing.UserId,
                     createRequest.IdempotencyKey
-                });
-                Metrics.AddMetric("ItemCreatedIdempotent", 1, MetricUnit.Count);
+                    });
+                    Metrics.AddMetric("ItemCreatedIdempotent", 1, MetricUnit.Count);
                 return CreateResponse(200, existing);
+                }
             }
-        }
 
-        var item = new WardrobeItem
-        {
+            var item = new WardrobeItem
+            {
             ItemId = createRequest.ItemId,
-            UserId = userId,
-            Name = createRequest.Name,
-            Category = createRequest.Category,
-            Season = createRequest.Season,
-            Color = createRequest.Color,
-            Brand = createRequest.Brand,
-            PurchaseDate = createRequest.PurchaseDate,
-            ImageUrl = createRequest.ImageUrl,
-            IdempotencyKey = createRequest.IdempotencyKey
-        };
+                UserId = userId,
+                Name = createRequest.Name,
+                Category = createRequest.Category,
+                Season = createRequest.Season,
+                Color = createRequest.Color,
+                Brand = createRequest.Brand,
+                PurchaseDate = createRequest.PurchaseDate,
+                ImageUrl = createRequest.ImageUrl,
+                IdempotencyKey = createRequest.IdempotencyKey
+            };
 
         await _repository.UpsertItemAsync(item);
 
         Logger.LogInformation("Item created", new
-        {
+            { 
             item.ItemId,
             item.UserId,
             item.Category,
             item.Season
-        });
+            });
 
-        Metrics.AddMetric("ItemCreated", 1, MetricUnit.Count);
+            Metrics.AddMetric("ItemCreated", 1, MetricUnit.Count);
         Metrics.AddMetric($"ItemCreated_{item.Category}", 1, MetricUnit.Count);
 
         return CreateResponse(201, item);
@@ -87,9 +87,9 @@ public class ItemHandler : IItemHandler
     public async Task<APIGatewayProxyResponse> ListItemsAsync(APIGatewayProxyRequest request, string userId)
     {
         if (request.PathParameters is null || !request.PathParameters.TryGetValue("userId", out var pathUserId) || pathUserId != userId)
-        {
+            {
             return CreateResponse(403, new { error = "forbidden", message = "user mismatch" });
-        }
+            }
 
         var query = request.QueryStringParameters ?? new Dictionary<string, string>();
         query.TryGetValue("season", out var season);
@@ -103,26 +103,26 @@ public class ItemHandler : IItemHandler
         var items = result.Items;
         var nextCursor = result.LastEvaluatedKey;
 
-        var response = new ListItemsResponse
-        {
+            var response = new ListItemsResponse
+            {
             Items = items.ToList(),
-            NextCursor = nextCursor,
+                NextCursor = nextCursor,
             HasMore = nextCursor is not null
-        };
+            };
 
         Logger.LogInformation("Items listed", new
-        {
+            { 
             userId,
-            Count = items.Count,
-            Season = season,
+                Count = items.Count,
+                Season = season,
             Category = category,
             HasMore = response.HasMore
-        });
+            });
 
-        Metrics.AddMetric("ItemsListed", items.Count, MetricUnit.Count);
+            Metrics.AddMetric("ItemsListed", items.Count, MetricUnit.Count);
 
-        return CreateResponse(200, response);
-    }
+            return CreateResponse(200, response);
+        }
 
     private static int ParseLimit(string? value)
     {

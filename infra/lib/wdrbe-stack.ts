@@ -93,9 +93,9 @@ export class WdrbeStack extends cdk.Stack {
     jwtSecret.grantRead(syncApiLambda);
 
     syncApiLambda.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['cloudwatch:PutMetricData'],
-      resources: ['*'],
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
       conditions: {
         StringEquals: { 'cloudwatch:namespace': 'Wdrbe' },
       },
@@ -147,8 +147,8 @@ export class WdrbeStack extends cdk.Stack {
     table.grantReadWriteData(shareWorkerLambda);
 
     shareWorkerLambda.addEventSource(new lambdaEventSources.SqsEventSource(shareEventQueue, {
-      batchSize: 10,
-      maxBatchingWindow: Duration.seconds(5),
+        batchSize: 10,
+        maxBatchingWindow: Duration.seconds(5),
       reportBatchItemFailures: true,
     }));
 
